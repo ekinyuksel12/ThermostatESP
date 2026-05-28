@@ -54,6 +54,7 @@ jobs:
           compile_sketch() {
             local folder=$1
             local name=$2
+            local fqbn=$3
             local out_dir="build/$name"
             
             CHANGED=1
@@ -66,14 +67,14 @@ jobs:
             
             if [ $CHANGED -eq 1 ]; then
               echo "Changes detected in $folder. Compiling new version $VERSION..."
-              arduino-cli compile --fqbn esp8266:esp8266:nodemcu:FlashSize=1M --output-dir $out_dir $folder
+              arduino-cli compile --fqbn $fqbn --output-dir $out_dir $folder
               mv $out_dir/$folder.ino.bin $out_dir/${name}_${VERSION}.bin
             else
               echo "No changes in $folder since $PREV_TAG. Downloading older artifact..."
               gh release download $PREV_TAG -p "${name}_*.bin" -D $out_dir || CHANGED=1
               if [ $CHANGED -eq 1 ]; then
                  echo "Failed to download old artifact, compiling fresh..."
-                 arduino-cli compile --fqbn esp8266:esp8266:nodemcu:FlashSize=1M --output-dir $out_dir $folder
+                 arduino-cli compile --fqbn $fqbn --output-dir $out_dir $folder
                  mv $out_dir/$folder.ino.bin $out_dir/${name}_${VERSION}.bin
               else
                  echo "Successfully pulled older version of $name to attach."
@@ -81,9 +82,9 @@ jobs:
             fi
           }
           
-          compile_sketch "esp8266_boiler" "boiler"
-          compile_sketch "esp8266_sensor" "sensor"
-          compile_sketch "tiny_ota_updater" "tiny_ota"
+          compile_sketch "esp8266_boiler" "boiler" "esp8266:esp8266:nodemcuv2"
+          compile_sketch "esp8266_sensor" "sensor" "esp8266:esp8266:generic:FlashSize=1M64"
+          compile_sketch "tiny_ota_updater" "tiny_ota" "esp8266:esp8266:generic:FlashSize=1M64"
 
       - name: Upload Binaries to Release
         uses: softprops/action-gh-release@v1
