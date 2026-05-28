@@ -25,16 +25,14 @@ The system is distributed across two main hardware nodes:
 
 This system is fully OTA-compatible, meaning you can update the firmware wirelessly through your web browser without connecting a USB cable.
 
-### For 4MB Boards (Boiler Controller)
-Because 4MB boards have plenty of flash memory, you can perform direct OTA updates:
-1. In Arduino IDE, go to **Sketch -> Export Compiled Binary** to generate your `.bin` file.
-2. Open your web browser and navigate to: `http://boiler.local/update` (or the IP address).
-3. Upload the `.bin` file and click Update. The device will reboot automatically.
+### Two-Stage OTA Updates for 1MB Flash Boards
 
-### For 1MB Boards (Sensor Node / ESP-01)
-1MB boards lack the space to hold two firmwares at once (the current one + the new one downloading). We use a **Two-Stage OTA** process:
-1. **Stage 1 (Flash Tiny Updater):** Compile and upload the `tiny_ota_updater.ino` sketch. If the device already has OTA, you can upload `tiny_ota.bin` via `http://sensor.local/update`. This strips out heavy libraries (like SinricPro) and leaves a tiny 230KB web server.
-2. **Stage 2 (Flash Production):** The device will reboot and expose a new updater at `http://ota-updater.local/update`. Now, select your large production `sensor.bin` and upload it. It will write over the empty space and boot into the main firmware.
+Because all boards in this system (both the Boiler Controller and the Sensor Node) are configured with **1MB of flash memory**, they lack the physical space to hold two production firmwares at once (the currently running one + the new one downloading). 
+
+Therefore, both nodes use a robust **Two-Stage OTA** process to upgrade:
+
+1. **Stage 1 (Flash Tiny Updater):** Compile and upload the `tiny_ota_updater.ino` sketch. If the device already has OTA, you can upload the `tiny_ota.bin` update binary via the node's local update page (e.g., `http://boiler.local/update` or `http://sensor.local/update`). This strips out heavy libraries (like SinricPro) and leaves a tiny 230KB web server.
+2. **Stage 2 (Flash Production):** The device will reboot and expose a temporary, clean updater page at `http://ota-updater.local/update`. Now, select your large production binary (`boiler.bin` or `sensor.bin`) and upload it. It will write over the empty flash and boot directly into the main production firmware.
 
 ## Automated CI/CD (GitHub Actions)
 
