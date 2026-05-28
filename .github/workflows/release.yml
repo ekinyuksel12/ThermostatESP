@@ -28,6 +28,8 @@ jobs:
           arduino-cli lib install "SinricPro"
           arduino-cli lib install "ArduinoJson"
           arduino-cli lib install "WebSockets"
+          arduino-cli lib install "DHT sensor library"
+          arduino-cli lib install "Adafruit Unified Sensor"
 
       - name: Extract Version
         id: get_version
