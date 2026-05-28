@@ -1,4 +1,4 @@
-# Smart Thermostat System
+# ThermostatESP
 
 A dual-node ESP8266-based smart thermostat system designed to control a Viessmann Vitopend 100 gas boiler via local temperature sensors, with an elegant built-in Dark Web UI and SinricPro cloud integration.
 
