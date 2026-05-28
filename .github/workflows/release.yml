@@ -1,0 +1,94 @@
+name: Build and Release Firmware
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 # Fetch all history for tags and diffs
+
+      - name: Setup Arduino CLI
+        uses: arduino/setup-arduino-cli@v1.1.2
+
+      - name: Install ESP8266 Core and Libraries
+        run: |
+          arduino-cli core update-index --additional-urls https://arduino.esp8266.com/stable/package_esp8266com_index.json
+          arduino-cli core install esp8266:esp8266 --additional-urls https://arduino.esp8266.com/stable/package_esp8266com_index.json
+          
+          # Install dependencies
+          arduino-cli lib install "SinricPro"
+          arduino-cli lib install "ArduinoJson"
+          arduino-cli lib install "WebSockets"
+
+      - name: Extract Version
+        id: get_version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "Extracted version: $VERSION"
+
+      - name: Determine Changes and Compile
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Inject new version string to all sketches
+          sed -i "s/#define FIRMWARE_VERSION \".*\"/#define FIRMWARE_VERSION \"$VERSION\"/g" esp8266_boiler/esp8266_boiler.ino
+          sed -i "s/#define FIRMWARE_VERSION \".*\"/#define FIRMWARE_VERSION \"$VERSION\"/g" esp8266_sensor/esp8266_sensor.ino
+          sed -i "s/#define FIRMWARE_VERSION \".*\"/#define FIRMWARE_VERSION \"$VERSION\"/g" tiny_ota_updater/tiny_ota_updater.ino
+
+          mkdir -p build/boiler build/sensor build/tiny_ota
+          
+          # Find the previous tag
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          echo "Previous tag: $PREV_TAG"
+          
+          compile_sketch() {
+            local folder=$1
+            local name=$2
+            local out_dir="build/$name"
+            
+            CHANGED=1
+            if [ -n "$PREV_TAG" ]; then
+              # Check if the folder changed since the previous tag
+              if git diff --quiet $PREV_TAG HEAD -- $folder/; then
+                CHANGED=0
+              fi
+            fi
+            
+            if [ $CHANGED -eq 1 ]; then
+              echo "Changes detected in $folder. Compiling new version $VERSION..."
+              arduino-cli compile --fqbn esp8266:esp8266:nodemcu:FlashSize=1M --output-dir $out_dir $folder
+              mv $out_dir/$folder.ino.bin $out_dir/${name}_${VERSION}.bin
+            else
+              echo "No changes in $folder since $PREV_TAG. Downloading older artifact..."
+              gh release download $PREV_TAG -p "${name}_*.bin" -D $out_dir || CHANGED=1
+              if [ $CHANGED -eq 1 ]; then
+                 echo "Failed to download old artifact, compiling fresh..."
+                 arduino-cli compile --fqbn esp8266:esp8266:nodemcu:FlashSize=1M --output-dir $out_dir $folder
+                 mv $out_dir/$folder.ino.bin $out_dir/${name}_${VERSION}.bin
+              else
+                 echo "Successfully pulled older version of $name to attach."
+              fi
+            fi
+          }
+          
+          compile_sketch "esp8266_boiler" "boiler"
+          compile_sketch "esp8266_sensor" "sensor"
+          compile_sketch "tiny_ota_updater" "tiny_ota"
+
+      - name: Upload Binaries to Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            build/boiler/*.bin
+            build/sensor/*.bin
+            build/tiny_ota/*.bin
