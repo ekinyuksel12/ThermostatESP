@@ -91,6 +91,7 @@ void handleStatus() {
     // 3. Hardware Health
     JsonObject hw = doc.createNestedObject("hardware");
     hw["chip_id"] = String(ESP.getChipId());
+    hw["firmware_version"] = FIRMWARE_VERSION;
     hw["cpu_freq_mhz"] = ESP.getCpuFreqMHz();
     hw["flash_real_size_bytes"] = ESP.getFlashChipRealSize();
     hw["flash_ide_size_bytes"] = ESP.getFlashChipSize();
@@ -156,6 +157,7 @@ void syncWithRelay() {
         doc["sensorRSSI"] = WiFi.RSSI();
         doc["sensorHeap"] = ESP.getFreeHeap();
         doc["sensorUptime"] = millis() / 1000;
+        doc["sensorFwVersion"] = FIRMWARE_VERSION;
         doc["dhtFailRate"] = (state.dhtReadAttemptCount > 0) ? ((float)state.dhtReadFailCount / state.dhtReadAttemptCount * 100.0f) : 0.0f;
 
         String payload;

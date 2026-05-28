@@ -67,6 +67,7 @@ struct RemoteSensorDiagnostics {
     float dhtFailRate = 0.0f;
     unsigned long uptime = 0;
     unsigned long lastReceivedMs = 0;
+    String firmwareVersion = "--";
 } sensorDiag;
 
 // --- Global Configuration ---
@@ -236,6 +237,7 @@ void handleStatus() {
     // 5. Boiler Hardware Info
     JsonObject hw = doc.createNestedObject("hardware");
     hw["chip_id"] = String(ESP.getChipId());
+    hw["firmware_version"] = FIRMWARE_VERSION;
     hw["cpu_freq_mhz"] = ESP.getCpuFreqMHz();
     hw["flash_real_size_bytes"] = ESP.getFlashChipRealSize();
     hw["flash_ide_size_bytes"] = ESP.getFlashChipSize();
@@ -265,6 +267,7 @@ void handleStatus() {
         sens["free_heap_bytes"] = sensorDiag.freeHeap;
         sens["dht_fail_rate_pct"] = sensorDiag.dhtFailRate;
         sens["uptime_seconds"] = sensorDiag.uptime;
+        sens["firmware_version"] = sensorDiag.firmwareVersion;
         sens["last_seen_seconds_ago"] = (millis() - sensorDiag.lastReceivedMs) / 1000;
     }
 
@@ -308,6 +311,9 @@ void handleSensor() {
     sensorDiag.freeHeap = doc["sensorHeap"] | 0;
     sensorDiag.dhtFailRate = doc["dhtFailRate"] | 0.0f;
     sensorDiag.uptime = doc["sensorUptime"] | 0;
+    if (doc.containsKey("sensorFwVersion")) {
+        sensorDiag.firmwareVersion = doc["sensorFwVersion"].as<String>();
+    }
     sensorDiag.lastReceivedMs = millis();
 
     SinricProThermostat &myT = SinricPro[THERMOSTAT_ID];

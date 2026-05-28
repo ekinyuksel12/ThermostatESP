@@ -270,6 +270,7 @@ const char dashboard_html[] PROGMEM = R"=====(
                 <div class="diag-section-title">BOILER CONTROLLER DIAGNOSTICS</div>
                 <div class="diag-grid">
                     <div class="diag-item"><span class="diag-label">IP Address</span><span class="diag-value" id="diagBoilerIp">--</span></div>
+                    <div class="diag-item"><span class="diag-label">Firmware Ver</span><span class="diag-value" id="diagBoilerFw">--</span></div>
                     <div class="diag-item"><span class="diag-label">Free RAM (Heap)</span><span class="diag-value" id="diagBoilerHeap">--</span></div>
                     <div class="diag-item"><span class="diag-label">Reset Reason</span><span class="diag-value" id="diagBoilerReset">--</span></div>
                     <div class="diag-item"><span class="diag-label">Flash Size (Real)</span><span class="diag-value" id="diagBoilerFlash">--</span></div>
@@ -284,6 +285,7 @@ const char dashboard_html[] PROGMEM = R"=====(
                 <div class="diag-grid">
                     <div class="diag-item"><span class="diag-label">Sensor Status</span><span class="diag-value" id="diagSensorStatus">OFFLINE</span></div>
                     <div class="diag-item"><span class="diag-label">IP Address</span><span class="diag-value" id="diagSensorIp">--</span></div>
+                    <div class="diag-item"><span class="diag-label">Firmware Ver</span><span class="diag-value" id="diagSensorFw">--</span></div>
                     <div class="diag-item"><span class="diag-label">Signal (RSSI)</span><span class="diag-value" id="diagSensorRssi">--</span></div>
                     <div class="diag-item"><span class="diag-label">Sensor Uptime</span><span class="diag-value" id="diagSensorUptime">--</span></div>
                     <div class="diag-item"><span class="diag-label">Free RAM (Heap)</span><span class="diag-value" id="diagSensorHeap">--</span></div>
@@ -376,6 +378,7 @@ const char dashboard_html[] PROGMEM = R"=====(
                     document.getElementById('diagBoilerHeap').innerText = (data.hardware.free_heap_bytes / 1024).toFixed(1) + " KB";
                     document.getElementById('diagBoilerReset').innerText = data.hardware.reset_reason.substring(0, 20);
                     document.getElementById('diagBoilerFlash').innerText = (data.hardware.flash_real_size_bytes / 1024 / 1024).toFixed(0) + " MB";
+                    document.getElementById('diagBoilerFw').innerText = data.hardware.firmware_version ? "v" + data.hardware.firmware_version : "--";
                 }
                 if (data.diagnostics) {
                     document.getElementById('diagBoilerWifiDisc').innerText = data.diagnostics.wifi_disconnect_count;
@@ -405,6 +408,7 @@ const char dashboard_html[] PROGMEM = R"=====(
                     const sensUpMins = Math.floor((data.sensor_health.uptime_seconds % 3600) / 60);
                     document.getElementById('diagSensorUptime').innerText = sensUpHrs + "h " + sensUpMins + "m";
                     document.getElementById('diagSensorLastSeen').innerText = data.sensor_health.last_seen_seconds_ago + "s ago";
+                    document.getElementById('diagSensorFw').innerText = (data.sensor_health.firmware_version && data.sensor_health.firmware_version !== "--") ? "v" + data.sensor_health.firmware_version : "--";
                 } else {
                     sensStatus.innerText = "OFFLINE";
                     sensStatus.className = "diag-value diag-fail";
@@ -416,6 +420,7 @@ const char dashboard_html[] PROGMEM = R"=====(
                     document.getElementById('diagSensorDhtFail').className = "diag-value";
                     document.getElementById('diagSensorUptime').innerText = "--";
                     document.getElementById('diagSensorLastSeen').innerText = "--";
+                    document.getElementById('diagSensorFw').innerText = "--";
                 }
 
                 // Footer
