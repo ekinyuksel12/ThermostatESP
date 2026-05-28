@@ -82,9 +82,9 @@ jobs:
             fi
           }
           
-          compile_sketch "esp8266_boiler" "boiler" "esp8266:esp8266:generic:FlashSize=1M64"
-          compile_sketch "esp8266_sensor" "sensor" "esp8266:esp8266:generic:FlashSize=1M64"
-          compile_sketch "tiny_ota_updater" "tiny_ota" "esp8266:esp8266:generic:FlashSize=1M64"
+          compile_sketch "esp8266_boiler" "boiler" "esp8266:esp8266:generic:eesz=1M64"
+          compile_sketch "esp8266_sensor" "sensor" "esp8266:esp8266:generic:eesz=1M64"
+          compile_sketch "tiny_ota_updater" "tiny_ota" "esp8266:esp8266:generic:eesz=1M64"
 
       - name: Upload Binaries to Release
         uses: softprops/action-gh-release@v1
