@@ -36,6 +36,7 @@ void setup() {
   delay(1000);
   
   WiFi.mode(WIFI_STA);
+  WiFi.hostname("thermostat-ota-updater");
   WiFi.begin(WIFI_SSID, WIFI_PASS);
   
   Serial.print("Connecting to Wi-Fi");

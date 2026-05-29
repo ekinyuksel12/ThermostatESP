@@ -220,6 +220,7 @@ void setup() {
     ESP.wdtEnable(8000);
 
     WiFi.mode(WIFI_STA);
+    WiFi.hostname("thermostat-sensor");
     WiFi.setSleepMode(WIFI_LIGHT_SLEEP); // Power optimization
     WiFi.begin(WIFI_SSID, WIFI_PASS);
     while (WiFi.status() != WL_CONNECTED) {

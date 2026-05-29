@@ -369,6 +369,7 @@ void setup() {
     ESP.wdtEnable(8000);
 
     WiFi.mode(WIFI_STA);
+    WiFi.hostname("thermostat-boiler");
     WiFi.setSleepMode(WIFI_LIGHT_SLEEP); // Power optimization
     WiFi.begin(WIFI_SSID, WIFI_PASS);
 
