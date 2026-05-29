@@ -26,7 +26,6 @@
 #include <ESP8266HTTPUpdateServer.h>
 #include "SinricPro.h"
 #include "SinricProThermostat.h"
-#include "SinricProSwitch.h"
 #include "dashboard.h"
 
 // --- Hardcoded Credentials ---
@@ -34,8 +33,7 @@
 #define WIFI_PASS         "ESTyukselEST3118889"
 #define APP_KEY           "1095cf7a-6478-4e37-8eb4-f7d471cdda88"
 #define APP_SECRET        "4abb2e5e-a64f-4f3f-b189-2d5878564fd6-4ea6537e-9fa7-412c-a5d1-6de2a2459ad3"
-#define THERMOSTAT_ID     "6a18f8c1baa50bf9bf416a75"
-#define STATUS_SWITCH_ID  "6a18f892baa50bf9bf416a48"
+#define THERMOSTAT_ID     "6a18fb45baa50bf9bf416c52"
 #define WEATHER_API_KEY   "2d466f8a030d9622255b96a4243b4d3b"
 #define LATITUDE          "40.992422" // Trabzon
 #define LONGITUDE         "39.781729"
@@ -140,11 +138,6 @@ struct BoilerController {
         relayActive = on;
         lastRelayChange = millis();
         relaySwitchCount++;
-
-        // Push relay active status to SinricPro Switch!
-        SinricProSwitch &mySwitch = SinricPro[STATUS_SWITCH_ID];
-        mySwitch.sendPowerStateEvent(relayActive);
-
         return true;
     }
 } boiler;
@@ -331,6 +324,11 @@ void handleSensor() {
 // --- Sinric Pro Callbacks ---
 bool onPowerState(const String &deviceId, bool &state) {
     config.mode = state ? 1 : 0;
+    
+    // Explicitly synchronize thermostat mode on Google Home when power changes
+    SinricProThermostat &myT = SinricPro[THERMOSTAT_ID];
+    myT.sendThermostatModeEvent(state ? "HEAT" : "OFF");
+    
     return true; 
 }
 
@@ -346,9 +344,21 @@ bool onAdjustTargetTemperature(const String &deviceId, float &temperatureDelta) 
 }
 
 bool onThermostatMode(const String &deviceId, String &mode) {
-    if (mode == "HEAT") config.mode = 1;
-    else if (mode == "ECO" || mode == "COOL" || mode == "AUTO") config.mode = 2;
-    else if (mode == "OFF") config.mode = 0;
+    SinricProThermostat &myT = SinricPro[THERMOSTAT_ID];
+    if (mode == "HEAT") {
+        config.mode = 1;
+        myT.sendPowerStateEvent(true);
+    }
+    else if (mode == "ECO" || mode == "COOL" || mode == "AUTO") {
+        config.mode = 2;
+        myT.sendPowerStateEvent(true);
+        // Normalize custom modes (COOL, AUTO) to Sinric's expected COOL (ECO) state representation
+        myT.sendThermostatModeEvent("COOL");
+    }
+    else if (mode == "OFF") {
+        config.mode = 0;
+        myT.sendPowerStateEvent(false);
+    }
     return true;
 }
 
@@ -378,13 +388,6 @@ void setup() {
     myT.onTargetTemperature(onTargetTemperature);
     myT.onAdjustTargetTemperature(onAdjustTargetTemperature);
     myT.onThermostatMode(onThermostatMode);
-
-    // SinricPro Switch (Relay Status Indicator)
-    SinricProSwitch &mySwitch = SinricPro[STATUS_SWITCH_ID];
-    mySwitch.onPowerState([](const String &deviceId, bool &state) {
-        state = boiler.relayActive; // Enforce local state (read-only switch)
-        return true;
-    });
 
     SinricPro.restoreDeviceStates(true);
     SinricPro.begin(APP_KEY, APP_SECRET);

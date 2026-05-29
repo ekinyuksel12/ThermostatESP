@@ -1,0 +1,6 @@
+# Local build artifacts
+**/build/
+*.bin
+*.elf
+*.map
+.DS_Store
