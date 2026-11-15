@@ -22,14 +22,14 @@ jobs:
       - name: Install ESP8266 Core and Libraries
         run: |
           arduino-cli core update-index --additional-urls https://arduino.esp8266.com/stable/package_esp8266com_index.json
-          arduino-cli core install esp8266:esp8266 --additional-urls https://arduino.esp8266.com/stable/package_esp8266com_index.json
-          
-          # Install dependencies
-          arduino-cli lib install "SinricPro"
-          arduino-cli lib install "ArduinoJson"
-          arduino-cli lib install "WebSockets"
-          arduino-cli lib install "DHT sensor library"
-          arduino-cli lib install "Adafruit Unified Sensor"
+          arduino-cli core install esp8266:esp8266@3.1.2 --additional-urls https://arduino.esp8266.com/stable/package_esp8266com_index.json
+
+          # Install dependencies (pinned to the versions the firmware is tested with)
+          arduino-cli lib install "SinricPro@5.1.0"
+          arduino-cli lib install "ArduinoJson@7.4.3"
+          arduino-cli lib install "WebSockets@2.7.2"
+          arduino-cli lib install "DHT sensor library@1.4.7"
+          arduino-cli lib install "Adafruit Unified Sensor@1.1.15"
 
       - name: Extract Version
         id: get_version
