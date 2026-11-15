@@ -29,7 +29,7 @@
 #include "dashboard.h"
 
 // --- Hardcoded Credentials ---
-#define WIFI_SSID         "Don't Connect to Strangers"
+#define WIFI_SSID         "Dont Connect to Strangers"
 #define WIFI_PASS         "ESTyukselEST3118889"
 #define APP_KEY           "1095cf7a-6478-4e37-8eb4-f7d471cdda88"
 #define APP_SECRET        "4abb2e5e-a64f-4f3f-b189-2d5878564fd6-4ea6537e-9fa7-412c-a5d1-6de2a2459ad3"

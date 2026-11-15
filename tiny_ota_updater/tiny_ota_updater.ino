@@ -12,7 +12,7 @@
 #include <ESP8266mDNS.h>
 
 #define FIRMWARE_VERSION "1.0"
-#define WIFI_SSID "Don't Connect to Strangers"
+#define WIFI_SSID "Dont Connect to Strangers"
 #define WIFI_PASS "ESTyukselEST3118889"
 
 ESP8266WebServer server(80);
